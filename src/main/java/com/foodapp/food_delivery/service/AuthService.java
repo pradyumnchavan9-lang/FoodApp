@@ -1,11 +1,16 @@
 package com.foodapp.food_delivery.service;
 
 
+import com.foodapp.food_delivery.dto.AuthResponse;
 import com.foodapp.food_delivery.dto.LoginRequest;
 import com.foodapp.food_delivery.dto.RegisterRequest;
+import com.foodapp.food_delivery.enums.Role;
+import com.foodapp.food_delivery.exception.EmailAlreadyExistsException;
+import com.foodapp.food_delivery.exception.UserNotFoundException;
 import com.foodapp.food_delivery.model.User;
 import com.foodapp.food_delivery.repository.UserRepository;
 import com.foodapp.food_delivery.security.JwtService;
+import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,27 +33,43 @@ public class AuthService {
         this.jwtService = jwtService;
     }
 
-    public void register(RegisterRequest request){
+    @Transactional
+    public AuthResponse register(RegisterRequest request){
         if(userRepository.existsByEmail(request.getEmail())){
-            throw new RuntimeException("Email already exists");
+            throw new EmailAlreadyExistsException("Email already exists");
         }
 
         User user = new User();
         user.setEmail(request.getEmail());
         user.setName(request.getName());
         user.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
-        user.setRole(request.getRole());
+        user.setRole(Role.CUSTOMER);
         userRepository.save(user);
 
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setToken(jwtService.generateToken(request.getEmail()));
+        authResponse.setName(user.getName());
+        authResponse.setEmail(user.getEmail());
+        authResponse.setRole(user.getRole());
+        return authResponse;
     }
 
-    public String login(LoginRequest request){
+    public AuthResponse login(LoginRequest request){
         Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getEmail(),
                             request.getPassword()
                     )
         );
-        return jwtService.generateToken(request.getEmail());
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setToken(jwtService.generateToken(request.getEmail()));
+        authResponse.setName(user.getName());
+        authResponse.setEmail(user.getEmail());
+        authResponse.setRole(user.getRole());
+        return authResponse;
     }
 }
