@@ -16,7 +16,7 @@ public class RestaurantResponse {
     private AddressResponse addressResponse;
     private OwnerResponse ownerResponse;
     private Boolean isOpen;
-    private Integer phone;
+    private String phone;
     private CuisineType cuisineType;
     private Double rating;
 

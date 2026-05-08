@@ -13,7 +13,7 @@ public class AddressResponse {
     private String street;
     private String city;
     private String state;
-    private Integer zipcode;
+    private Integer zip;
     private Double latitude;
     private Double longitude;
 

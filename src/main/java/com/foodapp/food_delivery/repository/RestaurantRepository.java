@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
@@ -14,4 +15,5 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
     List<Restaurant> findAllByUser(User user);
     List<Restaurant> findAllByIsOpen(Boolean isOpen);
     List<Restaurant> findAllByCuisineType(CuisineType cuisineType);
+    Optional<Restaurant> findById(Long id);
 }

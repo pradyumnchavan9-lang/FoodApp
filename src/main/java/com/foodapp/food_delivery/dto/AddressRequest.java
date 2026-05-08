@@ -17,7 +17,7 @@ public class AddressRequest {
     @NotBlank
     private String state;
     @NotBlank
-    private String zip;
+    private Integer zip;
     private Double  latitude;
     private Double longitude;
 
