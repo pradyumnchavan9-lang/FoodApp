@@ -65,4 +65,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
 
     }
+
+    @ExceptionHandler(MenuItemNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleMenuItemNotFoundException(MenuItemNotFoundException exception) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setMessage(exception.getMessage());
+        errorResponse.setStatus(404);
+        errorResponse.setTimestamp(LocalDateTime.now());
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
 }
