@@ -22,7 +22,6 @@ public class OrderItem {
     private String name;
     @Column(nullable = false)
     private Double price;
-    private String portionSize;
     @Column(nullable = false)
     private Integer quantity;
     @ManyToOne(fetch = FetchType.LAZY)
