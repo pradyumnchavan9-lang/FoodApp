@@ -26,4 +26,6 @@ Clone the repo
 
 Set up PostgreSQL and Redis locally
 
-Add your credentials to applicatio
+Add your credentials to application.properties
+
+Run mvn spring-boot:run

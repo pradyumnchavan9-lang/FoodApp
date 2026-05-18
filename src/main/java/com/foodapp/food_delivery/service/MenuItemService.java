@@ -27,12 +27,15 @@ public class MenuItemService {
     private final MenuItemMapper menuItemMapper;
     private final AuthService authService;
     private final MenuItemRepository menuItemRepository;
+    private final RedisService  redisService;
     public MenuItemService(RestaurantRepository restaurantRepository, AuthService authService,
-                           MenuItemMapper menuItemMapper, MenuItemRepository menuItemRepository) {
+                           MenuItemMapper menuItemMapper, MenuItemRepository menuItemRepository,
+                           RedisService redisService) {
         this.restaurantRepository = restaurantRepository;
         this.menuItemMapper = menuItemMapper;
         this.authService = authService;
         this.menuItemRepository = menuItemRepository;
+        this.redisService = redisService;
     }
 
     //create item or add item
@@ -42,6 +45,7 @@ public class MenuItemService {
         User user = authService.getLoggedInUser();
         if(user.equals(restaurant.getUser())) {
             MenuItem menuItem = menuItemMapper.menuItemRequestToMenuItem(menuItemRequest, restaurant);
+            redisService.deleteByPattern(menuItem.getRestaurant().getId() + ":menu*");
             menuItemRepository.save(menuItem);
             return menuItemMapper.menuItemToMenuItemResponse(menuItem, restaurant);
         }else{
@@ -55,6 +59,7 @@ public class MenuItemService {
                         .orElseThrow(() -> new MenuItemNotFoundException("MenuItem not found"));
         User user = authService.getLoggedInUser();
         if(user.equals(menuItem.getRestaurant().getUser())) {
+            redisService.deleteByPattern(menuItem.getRestaurant().getId() + ":menu*");
             menuItemRepository.deleteById(menuItemId);
         }else{
             throw new UnauthorizedException("Only Owner can delete Item");
@@ -70,6 +75,7 @@ public class MenuItemService {
         if(user.equals(menuItem.getRestaurant().getUser())){
             menuItem.setIsAvailable(!menuItem.getIsAvailable());
             menuItemRepository.save(menuItem);
+            redisService.deleteByPattern(menuItem.getRestaurant().getId() + ":menu*");
             return menuItemMapper.menuItemToMenuItemResponse(menuItem, menuItem.getRestaurant());
         }else{
             throw new UnauthorizedException("Only Owner can update Item availability");
@@ -78,23 +84,38 @@ public class MenuItemService {
 
     //get all by category
     public List<MenuItemResponse> getAllByRestaurantAndCategory(Long restaurantId, MenuCategory category) {
+        String key = restaurantId + ":menu:" + category + ":";
+        List<MenuItemResponse> cache = redisService.get(key, List.class);
+        if(cache != null){
+            return cache;
+        }
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new RestaurantNotFoundException("Restaurant not found"));
         List<MenuItem> menuItems = menuItemRepository.findAllByRestaurantAndCategory(restaurant, category);
-        return convertToMenuItemResponseList(menuItems);
+        List<MenuItemResponse> responseList = convertToMenuItemResponseList(menuItems);
+        redisService.set(key, responseList, 300);
+        return responseList;
     }
 
     //get Menu By restaurant
     public List<MenuItemResponse> getMenuByRestaurant(Long restaurantId) {
+        String key = restaurantId + ":menu:";
+        List<MenuItemResponse> cache = redisService.get(key, List.class);
+        if(cache != null){
+            return cache;
+        }
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new RestaurantNotFoundException("Restaurant not found"));
 
         List<MenuItem> menuItems = menuItemRepository.findAllByRestaurant(restaurant);
-        return convertToMenuItemResponseList(menuItems);
+        List<MenuItemResponse> responseList = convertToMenuItemResponseList(menuItems);
+        redisService.set(key, responseList, 300);
+        return responseList;
     }
 
     //convert list of menuItems to list of menu Items responses
     public List<MenuItemResponse> convertToMenuItemResponseList(List<MenuItem> menuItems) {
+
         List<MenuItemResponse> menuItemResponseList = new ArrayList<>();
         for(MenuItem menuItem : menuItems){
             MenuItemResponse menuItemResponse = menuItemMapper.menuItemToMenuItemResponse(menuItem, menuItem.getRestaurant());

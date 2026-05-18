@@ -39,4 +39,9 @@ public class RedisService {
     public void delete(String key){
         redisTemplate.delete(key);
     }
+
+    //delete by pattern
+    public void deleteByPattern(String pattern){
+        redisTemplate.delete(redisTemplate.keys(pattern));
+    }
 }
