@@ -16,4 +16,5 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
     List<Restaurant> findAllByIsOpen(Boolean isOpen);
     List<Restaurant> findAllByCuisineType(CuisineType cuisineType);
     Optional<Restaurant> findById(Long id);
+    List<Restaurant> findByNameContainingIgnoreCase(String name);
 }

@@ -15,4 +15,5 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
     Optional<MenuItem> findById(Long id);
     List<MenuItem> findAllByRestaurantAndCategory(Restaurant restaurant, MenuCategory category);
     List<MenuItem> findAllByRestaurant(Restaurant restaurant);
+    List<MenuItem> findByNameContainingIgnoreCase(String searchText);
 }
