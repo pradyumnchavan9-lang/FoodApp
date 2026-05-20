@@ -40,8 +40,13 @@ public class RestaurantController {
         return new ResponseEntity<>(restaurantService.toggleStatus(id), HttpStatus.OK);
     }
 
-    @GetMapping()
+    @GetMapping("/all")
     public ResponseEntity<List<RestaurantResponse>> getAllRestaurants(){
         return new ResponseEntity<>(restaurantService.getAllRestaurants(), HttpStatus.OK);
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<RestaurantResponse>> getNearbyRestaurants(@RequestParam double lat, @RequestParam double lon, @RequestParam double radius) {
+        return new ResponseEntity<>(restaurantService.getNearbyRestaurants(lat, lon, radius), HttpStatus.OK);
     }
 }

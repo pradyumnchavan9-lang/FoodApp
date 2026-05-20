@@ -107,4 +107,9 @@ public class RestaurantService {
         List<Restaurant> restaurants = restaurantRepository.findAll();
         return convertRestaurants(restaurants);
     }
+
+    //find nearby restaurants
+    public List<RestaurantResponse> getNearbyRestaurants(double lat, double lon, double radius) {
+        return convertRestaurants(restaurantRepository.findNearbyRestaurants(lat, lon, radius));
+    }
 }
